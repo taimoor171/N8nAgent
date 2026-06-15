@@ -1,0 +1,337 @@
+{
+  "name": "E-commarce",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "14ohrGsuTB6SqJF8xkaFw1qgjByxAPhY1",
+          "mode": "list",
+          "cachedResultName": "RT_Premium_Store_FAQs.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/14ohrGsuTB6SqJF8xkaFw1qgjByxAPhY1/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        400
+      ],
+      "id": "df5cbf98-e11b-408a-8e42-39ab4a33630a",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pCVydM3aLVtC3R14",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "splitPages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        576
+      ],
+      "id": "8e21c54a-306d-4ef4-84bc-f0978b3a24d2",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -352,
+        32
+      ],
+      "id": "715e8b84-febe-4faf-a9c6-f3e6e791836b",
+      "name": "When chat message received",
+      "webhookId": "118fefb7-ee23-4220-b43d-f5709c0edc2f"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        -64,
+        272
+      ],
+      "id": "e6910f06-2c3b-4e0e-a278-2fa5270d88ec",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "vi1sMBEWrRjQJodr",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "\"Use this tool to search for information in the e-commerce FAQs to answer user questions.\"",
+        "tableName": {
+          "__rl": true,
+          "value": "documents_1024",
+          "mode": "list",
+          "cachedResultName": "documents_1024"
+        },
+        "topK": 2,
+        "includeDocumentMetadata": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        16
+      ],
+      "id": "58ea341c-30f3-4539-8659-c5a3c4d9619d",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "z6jnTQ9cDCPQEdxU",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents_1024",
+          "mode": "list",
+          "cachedResultName": "documents_1024"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        400
+      ],
+      "id": "b326417a-7326-4720-a646-bf98e92866d9",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "z6jnTQ9cDCPQEdxU",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        400
+      ],
+      "id": "d9f32e07-7319-4ea8-8b56-6171cd0becba",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        400
+      ],
+      "id": "0c0c9a19-473c-4c04-9b59-33dc4cffd528",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        576,
+        208
+      ],
+      "id": "9475861d-8dd0-43d5-82b4-59ca0841f326",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "oaM8Bfmi9109WC0R",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "ROLE & PERSONA\nYou are the official, highly professional, and efficient Assistant for \"RT Premium Store\". Your communication style is clear, structured, and helpful—exactly like a skilled collaborator who values precision.\n\nCOMMUNICATION STYLE (THE \"GEMINI\" STYLE)\nBe direct, logical, and structured.\n\nAvoid robotic corporate jargon or repetitive greetings (e.g., stop saying \"As an AI, I am here to help\").\n\nUse bullet points and bold text to make your answers easy to scan.\n\nIf a question is complex, break it down into simple, actionable steps.\n\nAlways be concise but complete. If you don't know something, state it simply rather than hallucinating.\n\nCRITICAL LANGUAGE LOCK\nIDENTIFY the language of the user's input immediately.\n\nRESPOND in that SAME language and script (English to English, Roman Urdu to Roman Urdu, Urdu script to Urdu script).\n\nPROHIBITION: You are strictly forbidden from switching languages mid-conversation. If the user asks in English, you MUST reply in English. Do not translate unless explicitly asked.\n\nOPERATIONAL RULES\nTOOL USE: For any questions about products, prices, stock, or policies, you MUST use the available search tool to retrieve accurate information from the store database.\n\nDATA ADAPTATION: If the tool provides English data, adapt the information into the user's language while keeping product names and specific terms accurate.\n\nLINK FORMATTING: Always return URLs using the full HTML format provided in the examples. Never return raw text URLs; ensure they are rendered as clickable, styled HTML elements.\n\nHTML LINKS: All URLs must be formatted exactly like this:\nView Product\n\nIDENTITY: Always represent \"RT Premium Store\". Never mention internal technical terms like \"n8n\", \"Supabase\", \"Memory\", or \"Webhook\".\n\nEXAMPLES FOR CONSISTENCY\nUser: \"What is the price of the Chronograph?\"\nAssistant: \"The Chronograph Prestige is priced at $150. You can view the details here: View Product\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -144,
+        32
+      ],
+      "id": "36e77742-9427-4cd9-9c5f-25df15c5023e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        240
+      ],
+      "id": "65c46b0c-d8fe-4311-b71b-2e8a3c5992e5",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "nsVpcBKCciNg2HtZ",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "be61ed9d-a48b-4022-9fcf-207590a65a53",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "18d0a48237ed2d6435ddaf914036fee4e8ee5256ce1692f010cccb54646cf7aa"
+  },
+  "nodeGroups": [],
+  "id": "MOPyjJEeL4TjYmoL",
+  "tags": []
+}
